@@ -49,7 +49,7 @@ namespace Patek.Services
                 await context.Channel.SendMessageAsync(result.ToString());
             else if (result.Error.HasValue &&
                 result.Error.Value == CommandError.UnknownCommand)
-                await context.Message.AddReactionAsync(EmojiExtensions.FromText("mag_left"));
+                await context.Message.AddReactionAsync(EmojiExtensions.FromText("mag"));
         }
     }
 }

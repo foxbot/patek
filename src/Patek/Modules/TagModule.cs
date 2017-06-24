@@ -1,46 +1,32 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord;
-using Discord.Addons.EmojiTools;
 using Discord.Commands;
-using Patek.Data;
-using Patek.Services;
 
 namespace Patek.Modules
 {
-    public class TagModule : ModuleBase<SocketCommandContext>
+    [Group("tag")]
+    [RequireElevatedUser]
+    public class TagModule : TagModuleBase
     {
-        static readonly Emoji TagNotFound = EmojiExtensions.FromText("mag_right");
-        static readonly Emoji Pass = EmojiExtensions.FromText("ok_hand");
-        static readonly Emoji Fail = EmojiExtensions.FromText("octagonal_sign");
-        static readonly Emoji Removed = EmojiExtensions.FromText("put_litter_in_its_place");
+        private bool rebuild = false;
 
-        public PatekContext Database { get; set; } 
-        public TagService Tags { get; set; }
-
-        [Command("tags")]
-        [Alias("tag list")]
-        public async Task ListTagsAsync()
-        {
-            var tags = Database.Tags.Select(t => t.Name);
-            await ReplyAsync("**Tags:** " + string.Join(", ", tags));
-        }
-        [Command("tag create")]
+        [Command("create")]
         public async Task CreateTagAsync(string name, [Remainder] string content)
         {
             Tags.CreateTag(Database, name, content, Context.User, Color.Default.RawValue);
             await ReactAsync(Pass);
-            await Tags.BuildCommandsAsync();
+            rebuild = true;
         }
-        [Command("tag set name")]
+        [Command("set name")]
         public async Task SetNameAsync(string name, string target)
         {
             var tag = Tags.GetTag(Database, name);
             if (tag == null) await ReactAsync(TagNotFound);
             tag.ChangeName(target, Context.User);
             await ReactAsync(Pass);
+            rebuild = true;
         }
-        [Command("tag set content")]
+        [Command("set content")]
         public async Task SetContentAsync(string name, [Remainder] string content)
         {
             var tag = Tags.GetTag(Database, name);
@@ -48,7 +34,7 @@ namespace Patek.Modules
             tag.ChangeContent(content, Context.User);
             await ReactAsync(Pass);
         }
-        [Command("tag set color")]
+        [Command("set color")]
         public async Task SetColorAsync(string name, uint color)
         {
             var tag = Tags.GetTag(Database, name);
@@ -56,7 +42,7 @@ namespace Patek.Modules
             tag.ChangeColor(color, Context.User);
             await ReactAsync(Pass);
         }
-        [Command("tag destroy")]
+        [Command("destroy")]
         public async Task DeleteTagAsync(string name, bool confirm)
         {
             if (!confirm) await ReactAsync(Fail);
@@ -64,9 +50,9 @@ namespace Patek.Modules
             if (tag == null) await ReactAsync(TagNotFound);
             tag.Destroy(Context.User);
             await ReactAsync(Removed);
-            await Tags.BuildCommandsAsync();
+            rebuild = true;
         }
-        [Command("tag rebuild")]
+        [Command("rebuild")]
         public async Task RebuildTags()
         {
             await Tags.BuildCommandsAsync();
@@ -78,7 +64,10 @@ namespace Patek.Modules
         protected override void AfterExecute()
         {
             Database.SaveChanges();
-            Database.Dispose(); 
+            Database.Dispose();
+            // rebuild commands after commiting changes to database!
+            if (rebuild)
+                Tags.BuildCommandsAsync().GetAwaiter().GetResult();
         }
    }
 }

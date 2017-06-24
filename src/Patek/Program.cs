@@ -53,6 +53,7 @@ namespace Patek
                     options.UseNpgsql(_config["db"]);
                 }, ServiceLifetime.Transient)
                 .AddSingleton<TagService>()
+                .AddSingleton<FilterService>()
                 .BuildServiceProvider();
         }
 

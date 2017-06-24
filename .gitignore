@@ -295,3 +295,5 @@ __pycache__/
 src/Patek/config\.json
 
 src/Patek/Migrations/
+
+src/Patek/filter\.json
