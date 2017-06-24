@@ -1,12 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Patek.Services;
+using Patek.Data;
 
 namespace Patek
 {
@@ -26,6 +28,7 @@ namespace Patek
             var services = ConfigureServices();
             services.GetRequiredService<LogService>();
             await services.GetRequiredService<CommandHandlingService>().InitializeAsync(services);
+            await services.GetRequiredService<TagService>().InitializeAsync(services);
 
             await _client.LoginAsync(TokenType.Bot, _config["token"]);
             await _client.StartAsync();
@@ -45,7 +48,11 @@ namespace Patek
                 .AddSingleton<LogService>()
                 // Extra
                 .AddSingleton(_config)
-                // Add additional services here...
+                .AddDbContext<PatekContext>(options =>
+                {
+                    options.UseNpgsql(_config["db"]);
+                }, ServiceLifetime.Transient)
+                .AddSingleton<TagService>()
                 .BuildServiceProvider();
         }
 

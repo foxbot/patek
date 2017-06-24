@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Discord;
+using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -9,14 +11,16 @@ namespace Patek.Services
 {
     public class CommandHandlingService
     {
-        private readonly DiscordSocketClient _discord;
         private readonly CommandService _commands;
+        private readonly IConfiguration _config;
+        private readonly DiscordSocketClient _discord;
         private IServiceProvider _provider;
 
-        public CommandHandlingService(IServiceProvider provider, DiscordSocketClient discord, CommandService commands)
+        public CommandHandlingService(IServiceProvider provider, DiscordSocketClient discord, CommandService commands, IConfiguration config)
         {
-            _discord = discord;
             _commands = commands;
+            _config = config;
+            _discord = discord;
             _provider = provider;
 
             _discord.MessageReceived += MessageReceived;
@@ -26,7 +30,6 @@ namespace Patek.Services
         {
             _provider = provider;
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
-            // Add additional initialization code here...
         }
 
         private async Task MessageReceived(SocketMessage rawMessage)
@@ -36,14 +39,17 @@ namespace Patek.Services
             if (message.Source != MessageSource.User) return;
 
             int argPos = 0;
-            if (!message.HasMentionPrefix(_discord.CurrentUser, ref argPos)) return;
+            if (!(message.HasMentionPrefix(_discord.CurrentUser, ref argPos) || message.HasStringPrefix(_config["prefix"], ref argPos))) return;
 
             var context = new SocketCommandContext(_discord, message);
             var result = await _commands.ExecuteAsync(context, argPos, _provider);
 
-            if (result.Error.HasValue && 
+            if (result.Error.HasValue &&
                 result.Error.Value != CommandError.UnknownCommand)
                 await context.Channel.SendMessageAsync(result.ToString());
+            else if (result.Error.HasValue &&
+                result.Error.Value == CommandError.UnknownCommand)
+                await context.Message.AddReactionAsync(EmojiExtensions.FromText("mag_left"));
         }
     }
 }

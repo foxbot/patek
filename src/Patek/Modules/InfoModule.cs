@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using System.Linq;
 
 namespace Patek.Modules
 {
@@ -23,10 +23,10 @@ namespace Patek.Modules
                 $"- Library: Discord.Net ({DiscordConfig.Version})\n" +
                 $"- Runtime: {RuntimeInformation.FrameworkDescription} {RuntimeInformation.ProcessArchitecture} " +
                     $"({RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture})\n" +
-                $"- Uptime: {GetUptime()}\n" +
+                $"- Uptime: {GetUptime()}\n\n" +
                 
                 $"{Format.Bold("Stats")}\n" +
-                $"- Heap Size: {GetHeapSize()}\n" +
+                $"- Heap Size: {GetHeapSize()}MiB\n" +
                 $"- Guilds: {Context.Client.Guilds.Count}\n" +
                 $"- Channels: {Context.Client.Guilds.Sum(g => g.Channels.Count)}\n" +
                 $"- Users: {Context.Client.Guilds.Sum(g => g.Users.Count)}\n");
