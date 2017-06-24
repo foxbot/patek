@@ -6,9 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using DiscordBot.Services;
+using Patek.Services;
 
-namespace DiscordBot
+namespace Patek
 {
     class Program
     {

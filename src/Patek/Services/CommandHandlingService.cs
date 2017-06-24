@@ -5,7 +5,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace DiscordBot.Services
+namespace Patek.Services
 {
     public class CommandHandlingService
     {
