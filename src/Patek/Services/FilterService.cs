@@ -13,7 +13,8 @@ namespace Patek.Services
 
         public FilterService()
         {
-            _filter = JsonConvert.DeserializeObject<Filter>(File.ReadAllText("./filter.json"));
+            // TODO: pull filter from database
+            _filter = JsonConvert.DeserializeObject<Filter>(File.ReadAllText(Path.Combine(Program.GetConfigRoot(), "filter.json")));
         }
         
         public bool IsWhitelisted(IChannel channel)

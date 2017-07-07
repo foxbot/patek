@@ -21,6 +21,6 @@
     <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="..\..\..\..\%2540discord\patek\src\Patek\Preconditions\" />
+    <ProjectReference Include="..\Patek.Data\Patek.Data.csproj" />
   </ItemGroup>
 </Project>

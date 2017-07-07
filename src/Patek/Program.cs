@@ -9,6 +9,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Patek.Services;
 using Patek.Data;
+using System.Linq;
 
 namespace Patek
 {
@@ -60,9 +61,18 @@ namespace Patek
         private IConfiguration BuildConfig()
         {
             return new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(GetConfigRoot())
                 .AddJsonFile("config.json")
                 .Build();
+        }
+
+        public static string GetConfigRoot()
+        {
+            // Get whether the app is being launched from / (deployed) or /src/Patek (debug)
+
+            var cwd = Directory.GetCurrentDirectory();
+            var sln = Directory.GetFiles(cwd).Any(f => f.Contains("Patek.sln"));
+            return sln ? cwd : Path.Combine(cwd, "../..");
         }
     }
 }

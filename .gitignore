@@ -292,8 +292,9 @@ __pycache__/
 *.xsd.cs
 
 # End of https://www.gitignore.io/api/visualstudio
-src/Patek/config\.json
+config\.json
 
 src/Patek/Migrations/
+src/Patek.Data/Migrations/
 
-src/Patek/filter\.json
+filter\.json
