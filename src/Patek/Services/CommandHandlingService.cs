@@ -14,14 +14,16 @@ namespace Patek.Services
         private readonly CommandService _commands;
         private readonly IConfiguration _config;
         private readonly DiscordSocketClient _discord;
+        private readonly FilterService _filter;
         private IServiceProvider _provider;
 
-        public CommandHandlingService(IServiceProvider provider, DiscordSocketClient discord, CommandService commands, IConfiguration config)
+        public CommandHandlingService(IServiceProvider provider, DiscordSocketClient discord, CommandService commands, IConfiguration config, FilterService filter)
         {
             _commands = commands;
             _config = config;
             _discord = discord;
             _provider = provider;
+            _filter = filter;
 
             _discord.MessageReceived += MessageReceived;
         }
@@ -37,6 +39,7 @@ namespace Patek.Services
             // Ignore system messages and messages from bots
             if (!(rawMessage is SocketUserMessage message)) return;
             if (message.Source != MessageSource.User) return;
+            if (!_filter.IsWhitelisted(message.Channel)) return;
 
             int argPos = 0;
             if (!(message.HasMentionPrefix(_discord.CurrentUser, ref argPos) || message.HasStringPrefix(_config["prefix"], ref argPos))) return;

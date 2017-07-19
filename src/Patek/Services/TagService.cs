@@ -62,7 +62,7 @@ namespace Patek.Services
                 {
                     foreach (var tag in tags)
                     {
-                        m.AddCommand(tag.Name, async (ctx, _, provider) =>
+                        m.AddCommand(tag.Name, async (ctx, _, provider, _1) =>
                         {
                             using (var db = provider.GetService<PatekContext>())
                             {

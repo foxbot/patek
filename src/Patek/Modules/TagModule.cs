@@ -61,7 +61,7 @@ namespace Patek.Modules
 
         private Task ReactAsync(Emoji emoji)
             => Context.Message.AddReactionAsync(emoji);
-        protected override void AfterExecute()
+        protected override void AfterExecute(CommandInfo context)
         {
             Database.SaveChanges();
             Database.Dispose();

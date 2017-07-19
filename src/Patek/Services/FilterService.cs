@@ -21,8 +21,8 @@ namespace Patek.Services
             => _filter.ChannelWhitelist.Any(v => channel.Id == v);
         public bool IsElevated(SocketGuildUser user)
         {
-            if (!(_filter.GuildRoleMap.TryGetValue(user.Guild.Id, out ulong[] roles))) return false;
-            return user.Roles.Any(role => roles.Contains(role.Id));
+            if (!(_filter.GuildUserMap.TryGetValue(user.Guild.Id, out ulong[] users))) return false;
+            return users.Any(u => u == user.Id);
         }
     }
 
@@ -30,7 +30,7 @@ namespace Patek.Services
     {
         [JsonProperty("whitelist")]
         public ulong[] ChannelWhitelist { get; set; }
-        [JsonProperty("guild_role_map")]
-        public Dictionary<ulong, ulong[]> GuildRoleMap { get; set; }
+        [JsonProperty("guild_user_map")]
+        public Dictionary<ulong, ulong[]> GuildUserMap { get; set; }
     }
 }
