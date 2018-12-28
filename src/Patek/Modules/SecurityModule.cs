@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 using Discord;
 using Discord.Commands;
 using LiteDB;
@@ -50,9 +49,13 @@ namespace Patek.Modules
             foreach (var role in roles)
                 added += actor.Roles.Add(role) ? 1 : 0;
             
-            Database.GetCollection<Actor>(security).Upsert(actor);
-
-            await ReplyAsync($"Actor {actor.Id} was updated. (roles affected: {added})");
+            if (added > 0)
+            {
+                Database.GetCollection<Actor>(security).Upsert(actor);
+                await ReplyAsync($"Actor {actor.Id} was updated. (roles affected: {added})");
+            }
+            else
+                await ReplyAsync($"No changes were made, actor {actor.Id} already possessed those roles.");
         }
 
         [Command("revoke")]
@@ -76,10 +79,13 @@ namespace Patek.Modules
                     skipped += 1;
             }
 
-            if (removed == 0)
-                await ReplyAsync($"No changes were made, actor {actor.Id} possessed none of the expected roles.");
-            else
+            if (removed > 0)
+            {
+                Database.GetCollection<Actor>(security).Update(actor);
                 await ReplyAsync($"Actor {actor.Id} was updated. (roles affected: {removed}, roles skipped: {skipped})");
+            }
+            else
+                await ReplyAsync($"No changes were made, actor {actor.Id} possessed none of the expected roles.");
         }
 
         [Command("bootstrap")]
@@ -99,7 +105,10 @@ namespace Patek.Modules
             }
 
             if (actor.Roles.Add(Role.Owner))
+            {
+                Database.GetCollection<Actor>(security).Upsert(actor);
                 await ReplyAsync($"Actor {actor.Id} was updated. (roles affected: 1)");
+            }
             else
                 await ReplyAsync($"No changes were made, {actor.Id} already possesses the requested role.");
         }
@@ -111,9 +120,5 @@ namespace Patek.Modules
             var roles = string.Join("; ", Role.ValidRoles);
             await ReplyAsync($"Valid roles: {roles}");
         }
-
-        [Command]
-        public Task HelpAsync([Remainder] string _)
-            => ReplyAsync($"Invalid command. (expected one of: inspect, grant, revoke, bootstrap, roles)");
     }
 }

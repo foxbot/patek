@@ -4,8 +4,10 @@ using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
+using LiteDB;
 using Patek.Data;
 using Patek.Preconditions;
+using Patek.Services;
 
 namespace Patek.Modules
 {
@@ -13,6 +15,9 @@ namespace Patek.Modules
     [RequireContext(ContextType.Guild)]
     public class ModerationModule : PatekModuleBase
     {
+        public LiteDatabase Database { get; set; }
+        public ModerationService ModService { get; set; }
+
         [Command("block")]
         [RequireRole(Role.ChannelBlocks)]
         public Task BlockAsync(IUser target, string reason = null)
@@ -25,9 +30,17 @@ namespace Patek.Modules
 
         [Command("tempblock")]
         [RequireRole(Role.ChannelBlocks)]
-        public Task TemporaryBlockAsync(IUser target, TimeSpan duration, string reason = null)
+        public async Task TemporaryBlockAsync(IUser target, TimeSpan duration, string reason = null)
         {
-            throw new NotImplementedException();
+            await BlockAsync(target, reason);
+            Database.GetCollection<Block>().Insert(new Block
+            {
+                ActorId = Context.User.Id,
+                TargetId = target.Id,
+                ChannelId = Context.Channel.Id,
+                GuildId = Context.Guild.Id,
+                Expiration = DateTimeOffset.Now + duration,
+            });
         }
 
         [Command("react off")]
@@ -40,11 +53,11 @@ namespace Patek.Modules
         public Task ReinstateReactionsAsync(IUser target, string reason = null)
             =>  ModifyPermissionAsync(target, p => p.Modify(addReactions: PermValue.Inherit), reason);
 
-        private async Task ModifyPermissionAsync(IUser target, Action<OverwritePermissions> permFunc, string reason = null)
+        private async Task ModifyPermissionAsync(IUser target, Func<OverwritePermissions, OverwritePermissions> permFunc, string reason = null)
         {
             var channel = Context.Channel as SocketTextChannel;
             var overwrite = channel.GetPermissionOverwrite(target) ?? OverwritePermissions.InheritAll;
-            permFunc(overwrite);
+            overwrite = permFunc(overwrite);
 
             try
             {

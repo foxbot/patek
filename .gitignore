@@ -346,3 +346,7 @@ ASALocalRun/
 healthchecksdb
 
 # End of https://www.gitignore.io/api/visualstudio
+
+
+data.db
+config.toml

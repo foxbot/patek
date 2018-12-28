@@ -37,12 +37,13 @@ namespace Patek
         public async Task MainAsync()
         {
             _services.GetRequiredService<LogService>().Configure();
+            _services.GetRequiredService<ModerationService>().Configure();
             await _services.GetRequiredService<CommandHandlingService>().ConfigureAsync();
 
             var token = _services.GetRequiredService<Configuration>().Token;
             var discord = _services.GetRequiredService<DiscordSocketClient>();
 
-            await discord.LoginAsync(Discord.TokenType.Bot, token);
+            await discord.LoginAsync(TokenType.Bot, token);
             await discord.StartAsync();
 
             Console.Title = $"patek (Discord.Net v{DiscordConfig.Version})";
@@ -57,13 +58,14 @@ namespace Patek
                 .AddSingleton(_ => Toml.ReadFile<Configuration>("./config.toml"))
                 .AddSingleton(services =>
                 {
-                    var db = services.GetRequiredService<Configuration>().Database;
+                    string db = services.GetRequiredService<Configuration>().Database;
                     return new LiteDatabase(db);
                 })
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton<CommandService>()
                 .AddSingleton<CommandHandlingService>()
                 .AddSingleton<LogService>()
+                .AddSingleton<ModerationService>()
                 .BuildServiceProvider();
         }
 

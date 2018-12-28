@@ -6,6 +6,23 @@ using Discord.WebSocket;
 
 namespace Patek.Services
 {
+    public struct Logger
+    {
+        private readonly string source;
+        private readonly LogService log;
+
+        public Logger(string source, LogService log)
+        {
+            this.source = source;
+            this.log = log;
+        }
+        
+        public Task InfoAsync(string message)
+            => log.LogAsync(new LogMessage(LogSeverity.Info, source, message));
+        public Task WarnAsync(string message, Exception ex = null)
+            => log.LogAsync(new LogMessage(LogSeverity.Warning, source, message, ex));
+    }
+
     public class LogService
     {
         private readonly CommandService _commands;
