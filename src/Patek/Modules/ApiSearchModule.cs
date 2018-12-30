@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using Discord;
 using Discord.Commands;
 using Patek.Data;
 using Patek.Services;
@@ -14,8 +10,10 @@ namespace Patek.Modules
     {   
         public ApiSearchService ApiSearchService { get; set; }
         
-        [Command(".net")]
-        [Alias("search", "net", "msftdocs", "c#docs", "netdocs", ".netdocs", "dotnet", "dotnetdocs")]
+        // I logged this with 900ms response time to the API; factoring in the 100-200ms it takes to reply,
+        // we'd be looking at over 1100ms on this command, which is more than I'd like to block for.
+        [Command(".net", RunMode = RunMode.Async)]
+        [Alias("search", "net", "msftdocs", "c#docs", "netdocs", ".netdocs", "dotnet", "dotnetdocs", "msdn")]
         [Summary("Searches the .NET API Browser for the given search term.")]
         public async Task Search([Remainder] string searchTerm)
         {
@@ -36,7 +34,7 @@ namespace Patek.Modules
                 await ReplyAsync("Encountered an error trying to get results from MSDN.");
             }
             // no results
-            else if (results.Results.Count == 0)
+            else if (results.Results.Length == 0)
             {
                 await ReplyAsync("Search returned no results.");
             }
@@ -45,7 +43,7 @@ namespace Patek.Modules
             else
             {
                 var e = ApiSearchService.BuildResultsEmbed(results, searchTerm);
-                await ReplyAsync($"{results.Results.Count} result(s):", embed: e);
+                await ReplyAsync($"{results.Results.Length} result(s):", embed: e);
             }
         }
     }

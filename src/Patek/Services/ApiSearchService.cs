@@ -1,13 +1,16 @@
 ﻿using Discord;
+using LiteDB;
 using Newtonsoft.Json;
 using Patek.Data;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Patek.Services
@@ -25,11 +28,15 @@ namespace Patek.Services
         /// </summary>
         private static Regex SearchTermRegex = new Regex(@"^[A-Za-z][A-Za-z0-9\\.<>,]+$");
 
-        private HttpClient _http;
+        private readonly LiteDatabase _database;
+        private readonly HttpClient _http;
+        private readonly Logger _logger;
 
-        public ApiSearchService()
+        public ApiSearchService(LiteDatabase database, LogService log)
         {
+            _database = database;
             _http = new HttpClient();
+            _logger = new Logger("APISearch", log);
         }
 
         /// <summary>
@@ -68,13 +75,29 @@ namespace Patek.Services
                 throw new ArgumentException(paramName: nameof(searchTerm), message:
                     "The search term contained invalid characters.");
             }
-            
+
+            var cached = _database.GetCollection<MsdnSearchResults>().FindOne(
+                r => r.SearchTerm.Equals(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+            if (cached != null)
+                return cached;
+
             // GET the api query
+            var stopwatch = Stopwatch.StartNew();
             var result = await _http.GetAsync(GetMsdnApiSearchUrl(searchTerm));
+            stopwatch.Stop();
+            await _logger.InfoAsync($"{result.StatusCode} {searchTerm} in {stopwatch.ElapsedMilliseconds}ms");
+
             if (result.IsSuccessStatusCode)
             {
                 // read the contents into a json reader
-                return JsonConvert.DeserializeObject<MsdnSearchResults>(await result.Content.ReadAsStringAsync());
+                var results = JsonConvert.DeserializeObject<MsdnSearchResults>(await result.Content.ReadAsStringAsync());
+                
+                // cache the results
+                results.SearchTerm = searchTerm;
+                _database.GetCollection<MsdnSearchResults>().Insert(results);
+
+                return results;
             }
             // non success status code
             return null;
