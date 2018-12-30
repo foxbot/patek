@@ -4,9 +4,9 @@ using Newtonsoft.Json;
 namespace Patek.Data
 {
     [JsonObject]
-    public class SearchResults
+    public class MsdnSearchResults
     {
         [JsonProperty("results")]
-        public IReadOnlyList<SearchResult> Results { get; set; }
+        public IReadOnlyList<MsdnSearchResult> Results { get; set; }
     }
 }

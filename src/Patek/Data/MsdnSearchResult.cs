@@ -3,7 +3,7 @@
 namespace Patek.Data
 {
     [JsonObject]
-    public class SearchResult
+    public class MsdnSearchResult
     {
         [JsonProperty("displayName")]
         public string DisplayName { get; set; }

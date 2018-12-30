@@ -12,13 +12,13 @@ using Patek.Data;
 
 namespace Patek.Modules
 {
-    public class DotNetApiSearchModule : PatekModuleBase
+    public class ApiSearchModule : PatekModuleBase
     {
         /// <summary>
         ///     Regular expression that determines what search queries are valid.
         ///     This is stated in error messages when invalid terms are searched.
         /// </summary>
-        private const string SearchTermRegex = @"^[A-Za-z][A-Za-z0-9\\.<>,]+$";
+        private static Regex SearchTermRegex = new Regex(@"^[A-Za-z][A-Za-z0-9\\.<>,]+$");
         
         /// <summary>
         ///     Up to the first N results to display in the embed.
@@ -30,12 +30,12 @@ namespace Patek.Modules
         [Summary("Searches the .NET API Browser for the given search term.")]
         public async Task Search([Remainder] string searchTerm)
         {
-            SearchResults results = null;
+            MsdnSearchResults results = null;
             try
             {
                 results = await GetMsdnResultsAsync(searchTerm);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
                 await ReplyAsync("The search term was invalid.");
                 return;
@@ -66,7 +66,7 @@ namespace Patek.Modules
         /// <param name="results"> The search results to display in the embed. Assumed not null. </param>
         /// <param name="searchTerm"> The search term that produced these results. Assumed not null. </param>
         /// <returns> A new Embed instance containing the search results information. </returns>
-        private static Embed BuildResultsEmbed(SearchResults results, string searchTerm)
+        private static Embed BuildResultsEmbed(MsdnSearchResults results, string searchTerm)
         {
             var eb = new EmbedBuilder();
             eb.WithCurrentTimestamp();
@@ -112,7 +112,7 @@ namespace Patek.Modules
         /// </summary>
         /// <param name="searchTerm"> The string to search for. </param>
         /// <returns> The resulting search terms, if any. </returns>
-        private async Task<SearchResults> GetMsdnResultsAsync(string searchTerm)
+        private async Task<MsdnSearchResults> GetMsdnResultsAsync(string searchTerm)
         {
             // check for null parameter
             if (string.IsNullOrWhiteSpace(searchTerm))
@@ -121,7 +121,7 @@ namespace Patek.Modules
             }
             // trim whitespace, then check that it matches the regex for valid search terms
             searchTerm = searchTerm.Trim();
-            if (!Regex.IsMatch(searchTerm, SearchTermRegex))
+            if (!SearchTermRegex.IsMatch(searchTerm))
             {
                 throw new ArgumentException(paramName: nameof(searchTerm), message:
                     "The search term contained invalid characters.");
@@ -133,7 +133,7 @@ namespace Patek.Modules
                 if (result.IsSuccessStatusCode)
                 {
                     // read the contents into a json reader
-                    return JsonConvert.DeserializeObject<SearchResults>(await result.Content.ReadAsStringAsync());
+                    return JsonConvert.DeserializeObject<MsdnSearchResults>(await result.Content.ReadAsStringAsync());
                 }
             }
             // non success status code
