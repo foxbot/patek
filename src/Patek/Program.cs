@@ -66,6 +66,7 @@ namespace Patek
                 .AddSingleton<CommandHandlingService>()
                 .AddSingleton<LogService>()
                 .AddSingleton<ModerationService>()
+                .AddSingleton<ApiSearchService>()
                 .BuildServiceProvider();
         }
 
