@@ -37,8 +37,7 @@ namespace Patek.Modules
             }
             catch (ArgumentException e)
             {
-                // is it bad practice to return exception messages?
-                await ReplyAsync(e.Message);
+                await ReplyAsync("The search term was invalid.");
                 return;
             }
            
@@ -81,10 +80,11 @@ namespace Patek.Modules
             var sb = new StringBuilder();
             foreach (var x in results.Results.Take(NumResultsToDisplay))
             {
-                sb.AppendLine($"{x.ItemKind} [{x.DisplayName}]({x.Url})\n{x.Description}");
+                // the Description field should be HTML decoded, as often &lt; and &rt; are used in descriptions
+                sb.AppendLine($"{x.ItemKind} [{x.DisplayName}]({x.Url})\n{WebUtility.HtmlDecode(x.Description)}\n");
             }
             // include a link to the website itself that includes all results
-            sb.AppendLine($"[Find more results in the .NET API Browser]{GetMsdnFrontEndSearch(searchTerm)}");
+            sb.AppendLine($"[Find more results in the .NET API Browser]({GetMsdnFrontEndSearch(searchTerm)})");
             eb.WithDescription(sb.ToString());
 
             return eb.Build();
@@ -110,26 +110,26 @@ namespace Patek.Modules
         /// <summary>
         ///     Gets the search results for a given search term.
         /// </summary>
-        /// <param name="s"> The string to search for. </param>
+        /// <param name="searchTerm"> The string to search for. </param>
         /// <returns> The resulting search terms, if any. </returns>
-        private async Task<SearchResults> GetMsdnResultsAsync(string s)
+        private async Task<SearchResults> GetMsdnResultsAsync(string searchTerm)
         {
             // check for null parameter
-            if (string.IsNullOrWhiteSpace(s))
+            if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                throw new ArgumentNullException(nameof(s), "The supplied search term may not be null or whitespace.");
+                throw new ArgumentNullException(nameof(searchTerm), "The supplied search term may not be null or whitespace.");
             }
             // trim whitespace, then check that it matches the regex for valid search terms
-            s = s.Trim();
-            if (!Regex.IsMatch(SearchTermRegex, s))
+            searchTerm = searchTerm.Trim();
+            if (!Regex.IsMatch(searchTerm, SearchTermRegex))
             {
-                throw new ArgumentException(paramName: nameof(s), message:
+                throw new ArgumentException(paramName: nameof(searchTerm), message:
                     "The search term contained invalid characters.");
             }
             using (var client = new HttpClient())
             {
                 // GET the api query
-                var result = await client.GetAsync(GetMsdnApiSearchUrl(s));
+                var result = await client.GetAsync(GetMsdnApiSearchUrl(searchTerm));
                 if (result.IsSuccessStatusCode)
                 {
                     // read the contents into a json reader
