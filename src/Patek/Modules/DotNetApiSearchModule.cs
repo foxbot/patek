@@ -56,7 +56,7 @@ namespace Patek.Modules
             else
             {
                 var e = BuildResultsEmbed(results, searchTerm);
-                await ReplyAsync($"First {Math.Min(results.Results.Count, NumResultsToDisplay)} results:", embed: e);
+                await ReplyAsync($"{results.Results.Count} result(s):", embed: e);
             }
         }
 
@@ -70,7 +70,7 @@ namespace Patek.Modules
         {
             var eb = new EmbedBuilder();
             eb.WithCurrentTimestamp();
-            eb.WithTitle($".NET API Browser Search Results: \"{searchTerm}\"");
+            eb.WithTitle($".NET API Search: \"{searchTerm}\"");
             // .NET purple
             eb.WithColor(new Color(104, 33, 122));
             
@@ -84,7 +84,7 @@ namespace Patek.Modules
                 sb.AppendLine($"{x.ItemKind} [{x.DisplayName}]({x.Url})\n{WebUtility.HtmlDecode(x.Description)}\n");
             }
             // include a link to the website itself that includes all results
-            sb.AppendLine($"[Find more results in the .NET API Browser]({GetMsdnFrontEndSearch(searchTerm)})");
+            sb.AppendLine($"[View all results in the .NET API Browser]({GetMsdnFrontEndSearch(searchTerm)})");
             eb.WithDescription(sb.ToString());
 
             return eb.Build();
