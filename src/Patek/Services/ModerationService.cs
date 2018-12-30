@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -69,16 +70,18 @@ namespace Patek.Services
 
         public async Task RemoveBlockAsync(Block block)
         {
-            var channel = _discord.GetGuild(block.GuildId)?.GetChannel(block.ChannelId);
-            var target = channel.GetUser(block.TargetId);
+            var guild = _discord.GetGuild(block.GuildId);
+            var channel = guild.GetChannel(block.ChannelId);
+            var target = guild.GetUser(block.TargetId); // must get user from guild, since they won't be able to access channel
 
-            var overwrite = channel.GetPermissionOverwrite(target).Value;
-            overwrite.Modify(viewChannel: PermValue.Inherit);
+            var overwrite = channel.GetPermissionOverwrite(target);
+            if (!overwrite.HasValue) return; // must have been manually removed.
+            overwrite = overwrite.Value.Modify(viewChannel: PermValue.Inherit);
 
             var options = RequestOptions.Default;
             options.AuditLogReason = $"Automated block expiry (as requested by actor {block.ActorId})";
 
-            await channel.AddPermissionOverwriteAsync(target, overwrite);
+            await channel.AddPermissionOverwriteAsync(target, overwrite.Value);
         }
             
         public void Dispose()
