@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 using Patek.Data;
+using Patek.Preconditions;
 using Patek.Services;
 
 namespace Patek.Modules
@@ -15,6 +16,7 @@ namespace Patek.Modules
         [Command(".net", RunMode = RunMode.Async)]
         [Alias("search", "net", "msftdocs", "c#docs", "netdocs", ".netdocs", "dotnet", "dotnetdocs", "msdn")]
         [Summary("Searches the .NET API Browser for the given search term.")]
+        [RateLimit(1, 3, RateLimitType = RateLimitType.Actor)]
         public async Task Search([Remainder] string searchTerm)
         {
             MsdnSearchResults results = null;

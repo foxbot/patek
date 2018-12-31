@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Patek.Preconditions;
 
 namespace Patek.Services
 {
@@ -12,16 +14,19 @@ namespace Patek.Services
         private readonly CommandService _commands;
         private readonly DiscordSocketClient _discord;
         private readonly LogService _log;
+        private readonly RateLimitService _rateLimitService;
         private readonly IServiceProvider _services;
 
         public CommandHandlingService(CommandService commands,
             DiscordSocketClient discord,
             LogService log,
+            RateLimitService rateLimit,
             IServiceProvider services)
         {
             _commands = commands;
             _discord = discord;
             _log = log;
+            _rateLimitService = rateLimit;
             _services = services;
 
             _commands.CommandExecuted += OnCommandExecutedAsync;
@@ -51,8 +56,20 @@ namespace Patek.Services
             if (!command.IsSpecified) return; // ignore search failures
             if (!result.IsSuccess)
                 await context.Channel.SendMessageAsync(result.ToString());
+            else
+            {
+                var limits = command.Value.Preconditions.OfType<RateLimitAttribute>();
+                foreach (var limit in limits)
+                {
+                    var rule = limit.GetRule(_rateLimitService, context, command.Value);
+                    //safe to pass nil here, this factory would have been run in the precondition earlier
+                    _rateLimitService.GetOrAdd(rule, BogusFactory).Increment();
+                }
+            }
             var log = new LogMessage(LogSeverity.Info, "chs", $"{context.User} invoked {command.Value.Name} in {context.Channel} with {result}");
             await _log.LogAsync(log);
         }
+        private RateLimitInfo BogusFactory(string _)
+            => throw new InvalidOperationException("This shouldn't be happening in the first place!!");
     }
 }

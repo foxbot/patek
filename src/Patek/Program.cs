@@ -67,6 +67,7 @@ namespace Patek
                 .AddSingleton<LogService>()
                 .AddSingleton<ModerationService>()
                 .AddSingleton<ApiSearchService>()
+                .AddSingleton<RateLimitService>()
                 .BuildServiceProvider();
         }
 
