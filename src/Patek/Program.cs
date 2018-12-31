@@ -47,9 +47,16 @@ namespace Patek
             await discord.StartAsync();
 
             Console.Title = $"patek (Discord.Net v{DiscordConfig.Version})";
-            
-            await Task.Delay(-1, _exitTokenSource.Token);
+
+            try
+            {
+                await Task.Delay(-1, _exitTokenSource.Token);
+            }
+            // we expect this to throw when exiting.
+            catch (TaskCanceledException) { }
+
             await discord.StopAsync();
+            Environment.Exit(0);
         }
 
         public ServiceProvider BuildServices()
@@ -61,6 +68,7 @@ namespace Patek
                     string db = services.GetRequiredService<Configuration>().Database;
                     return new LiteDatabase(db);
                 })
+                .AddSingleton(_exitTokenSource)
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton<CommandService>()
                 .AddSingleton<CommandHandlingService>()
