@@ -20,17 +20,17 @@ namespace Patek.Modules
 
         [Command("block")]
         [RequireRole(Role.ChannelBlocks)]
-        public Task BlockAsync(IUser target, string reason = null)
+        public Task BlockAsync(IUser target, [Remainder] string reason = null)
             => ModifyPermissionAsync(target, p => p.Modify(viewChannel: PermValue.Deny), reason);
 
         [Command("unblock")]
         [RequireRole(Role.ChannelBlocks)]
-        public Task UnblockAsync(IUser target, string reason = null)
+        public Task UnblockAsync(IUser target, [Remainder] string reason = null)
             => ModifyPermissionAsync(target, p => p.Modify(viewChannel: PermValue.Inherit), reason);
 
         [Command("tempblock")]
         [RequireRole(Role.ChannelBlocks)]
-        public async Task TemporaryBlockAsync(IUser target, TimeSpan duration, string reason = null)
+        public async Task TemporaryBlockAsync(IUser target, TimeSpan duration, [Remainder] string reason = null)
         {
             await BlockAsync(target, reason);
             Database.GetCollection<Block>().Insert(new Block
@@ -45,12 +45,12 @@ namespace Patek.Modules
 
         [Command("react off")]
         [RequireRole(Role.ReactionBlocks)]
-        public Task SilenceReactionsAsync(IUser target, string reason = null)
+        public Task SilenceReactionsAsync(IUser target, [Remainder] string reason = null)
             => ModifyPermissionAsync(target, p => p.Modify(addReactions: PermValue.Deny), reason);
 
         [Command("react on")]
         [RequireRole(Role.ReactionBlocks)]
-        public Task ReinstateReactionsAsync(IUser target, string reason = null)
+        public Task ReinstateReactionsAsync(IUser target, [Remainder] string reason = null)
             =>  ModifyPermissionAsync(target, p => p.Modify(addReactions: PermValue.Inherit), reason);
 
         private async Task ModifyPermissionAsync(IUser target, Func<OverwritePermissions, OverwritePermissions> permFunc, string reason = null)
