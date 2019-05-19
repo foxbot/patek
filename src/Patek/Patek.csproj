@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net.Commands" Version="2.0.0" />
-    <PackageReference Include="Discord.Net.WebSocket" Version="2.0.0" />
+    <PackageReference Include="Discord.Net.Commands" Version="2.1.0" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="2.1.0" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
     <PackageReference Include="Nett" Version="0.10.0" />
